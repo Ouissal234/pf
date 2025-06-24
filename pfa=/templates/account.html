@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Arkivo - Mon Profil{% endblock %}</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+  <style>
+    /* Import your dashboard styles */
+    :root {
+      /* Color Palette */
+      --sage-green: #88b04b;
+      --sage-light: #e8f5e9;
+      --sage-dark: #689f38;
+      --sage-darker: #4a7028;
+      --primary: #5c6bc0;
+      --primary-light: #e8eaf6;
+      --primary-dark: #3949ab;
+      --accent: #7e57c2;
+      --success: #66bb6a;
+      --warning: #ffa726;
+      --danger: #ef5350;
+      --info: #29b6f6;
+      --light: #f9f9f9;
+      --light-gray: #e0e0e0;
+      --medium-gray: #9e9e9e;
+      --dark-gray: #424242;
+      --dark: #212121;
+      --white: #ffffff;
+      
+      /* Layout */
+      --sidebar-width: 280px;
+      --sidebar-collapsed-width: 75px;
+      --transition-speed: 0.3s;
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 3px 6px rgba(0, 0, 0, 0.1);
+      
+      /* Transitions */
+      --transition-fast: all 0.2s ease-out;
+      --transition-normal: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --transition-slow: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+      
+      /* Backgrounds */
+      --bg-primary: var(--light);
+      --bg-secondary: var(--white);
+      --bg-card: rgba(255, 255, 255, 0.95);
+      --text-primary: var(--dark);
+      --text-secondary: var(--dark-gray);
+      --border: var(--light-gray);
+      
+      /* Gradients */
+      --gradient: linear-gradient(135deg, var(--sage-dark), var(--sage-darker));
+      --accent-gradient: linear-gradient(135deg, var(--sage-green), var(--sage-dark));
+      --primary-gradient: linear-gradient(135deg, var(--primary), var(--accent));
+      --hero-gradient: linear-gradient(135deg, var(--sage-darker), var(--primary));
+    }
+
+    /* Account page specific styles - inherits from dashboard.css */
+
+    .profile-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .profile-header {
+      background: var(--accent-gradient);
+      padding: 2.5rem 2rem 1rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .profile-picture {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-picture-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .profile-picture img {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      box-shadow: var(--shadow-lg);
+      transition: var(--transition-normal);
+    }
+
+    .profile-picture img:hover {
+      transform: scale(1.05);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .profile-upload-btn {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: var(--white);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .profile-upload-btn:hover {
+      background: var(--sage-light);
+      transform: scale(1.1);
+    }
+
+    .profile-upload-btn i {
+      color: var(--sage-dark);
+      font-size: 1.1rem;
+    }
+
+    .profile-upload-btn input {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .profile-title {
+      color: var(--white);
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1rem;
+      margin: 0.5rem 0 0;
+      font-weight: 400;
+    }
+
+    .profile-content {
+      padding: 2.5rem;
+    }
+
+    .form-section {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      transition: var(--transition-fast);
+    }
+
+    .form-section:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .form-section h2 {
+      color: var(--sage-dark);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 0 0 1.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-section h2 i {
+      color: var(--sage-green);
+      font-size: 1.1rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--bg-secondary);
+      font-size: 1rem;
+      transition: var(--transition-fast);
+      box-sizing: border-box;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: var(--sage-green);
+      box-shadow: 0 0 0 3px rgba(136, 176, 75, 0.1);
+      background: var(--white);
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--medium-gray);
+      font-size: 1.1rem;
+      transition: var(--transition-fast);
+    }
+
+    .input-wrapper:focus-within .input-icon {
+      color: var(--sage-green);
+    }
+
+    .btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary {
+      background: var(--accent-gradient);
+      color: var(--white);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+      background: var(--white);
+      color: var(--sage-dark);
+      border: 2px solid var(--sage-green);
+    }
+
+    .btn-secondary:hover {
+      background: var(--sage-light);
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger), #d32f2f);
+      color: var(--white);
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .password-strength {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .strength-bar {
+      height: 4px;
+      background: var(--light-gray);
+      border-radius: 2px;
+      margin: 0.5rem 0;
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      transition: var(--transition-fast);
+      border-radius: 2px;
+    }
+
+    .strength-weak { background: var(--danger); width: 25%; }
+    .strength-fair { background: var(--warning); width: 50%; }
+    .strength-good { background: var(--info); width: 75%; }
+    .strength-strong { background: var(--success); width: 100%; }
+
+    .photo-upload-section {
+      text-align: center;
+      padding: 2rem;
+      background: var(--sage-light);
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      border: 2px dashed var(--sage-green);
+      transition: var(--transition-fast);
+    }
+
+    .photo-upload-section:hover {
+      background: rgba(136, 176, 75, 0.1);
+      border-color: var(--sage-dark);
+    }
+
+    .upload-hint {
+      color: var(--sage-dark);
+      font-size: 0.9rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform var(--transition-speed) ease;
+      }
+      
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      
+      .dashboard-main {
+        margin-left: 0;
+      }
+      
+      .profile-container {
+        margin: 0;
+        border-radius: 16px;
+      }
+
+      .profile-content {
+        padding: 1.5rem;
+      }
+
+      .form-section {
+        padding: 1.5rem;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="cursor"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1 class="logo">Arkivo</h1>
+      <button class="toggle-btn"><i class="fas fa-chevron-left"></i></button>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> <span class="link-text">Dashboard</span></a></li>
+        <li><a href="{{ url_for('folders') }}"><i class="fas fa-folder"></i> <span class="link-text">Dossiers</span></a></li>
+        <li><a href="{{ url_for('reminders') }}"><i class="fas fa-bell"></i> <span class="link-text">Rappels</span></a></li>
+        <li><a href="{{ url_for('account') }}" class="active"><i class="fas fa-user"></i> <span class="link-text">Profil</span></a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('logout') }}" class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i>
+        <span class="logout-text">Déconnexion</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="dashboard-main">
+    <section class="content-header">
+      <h1>Mon Profil</h1>
+      <div class="notification-icon">
+        <i class="fas fa-bell"></i><span class="notif-badge">0</span>
+      </div>
+    </section>
+
+    <section class="profile-container">
+      <!-- Profile Header -->
+      <div class="profile-header">
+        <div class="profile-picture">
+          <div class="profile-picture-wrapper">
+            <img src="{{ session.profile_pic or url_for('static', filename='images/default-profile.png') }}" id="profilePreview" alt="Photo de Profil" />
+            <div class="profile-upload-btn">
+              <i class="fas fa-camera"></i>
+              <input type="file" id="profile_picture" accept="image/*" onchange="previewImage(event)">
+            </div>
+          </div>
+        </div>
+        <h1 class="profile-title">{{ session.fullname or 'Utilisateur' }}</h1>
+        <p class="profile-subtitle">{{ session.email or 'email@example.com' }}</p>
+      </div>
+
+      <div class="profile-content">
+        <!-- Photo Upload Section -->
+        <div class="photo-upload-section">
+          <form action="{{ url_for('account') }}" method="POST" enctype="multipart/form-data">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--sage-green); margin-bottom: 1rem;"></i>
+            <h3 style="color: var(--sage-dark); margin: 0 0 1rem 0;">Mettre à jour la photo de profil</h3>
+            <button type="submit" class="btn btn-secondary">
+              <i class="fas fa-upload"></i> Télécharger la photo
+            </button>
+            <p class="upload-hint">Formats acceptés: JPG, PNG, GIF (max 5MB)</p>
+          </form>
+        </div>
+
+        <!-- Personal Information -->
+        <div class="form-section">
+          <h2><i class="fas fa-user-edit"></i> Informations personnelles</h2>
+          <form action="{{ url_for('account') }}" method="POST">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="fullname">Nom Complet</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-user input-icon"></i>
+                  <input type="text" name="fullname" id="fullname" value="{{ session.fullname }}" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="email">Adresse Email</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-envelope input-icon"></i>
+                  <input type="email" name="email" id="email" value="{{ session.email }}" required>
+                </div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Enregistrer les modifications
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Password Change Section -->
+        <div class="form-section">
+          <h2><i class="fas fa-lock"></i> Sécurité du compte</h2>
+          <form action="{{ url_for('account') }}" method="POST">
+            <div class="form-group">
+              <label for="current_password">Mot de passe actuel</label>
+              <div class="input-wrapper">
+                <i class="fas fa-key input-icon"></i>
+                <input type="password" name="current_password" id="current_password" required>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="new_password">Nouveau mot de passe</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-lock input-icon"></i>
+                  <input type="password" name="new_password" id="new_password" required onkeyup="checkPasswordStrength()">
+                </div>
+                <div class="password-strength" id="passwordStrength" style="display: none;">
+                  <div class="strength-bar">
+                    <div class="strength-fill" id="strengthBar"></div>
+                  </div>
+                  <span id="strengthText"></span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="confirm_password">Confirmer le mot de passe</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-check-circle input-icon"></i>
+                  <input type="password" name="confirm_password" id="confirm_password" required>
+                </div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-shield-alt"></i> Changer le mot de passe
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Sidebar toggle functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleBtn = document.querySelector('.toggle-btn');
+      const body = document.body;
+      
+      // Initialize sidebar state
+      if (localStorage.getItem('sidebarExpanded') === 'false') {
+        body.classList.remove('sidebar-expanded');
+      } else {
+        body.classList.add('sidebar-expanded');
+      }
+      
+      toggleBtn?.addEventListener('click', () => {
+        body.classList.toggle('sidebar-expanded');
+        localStorage.setItem('sidebarExpanded', body.classList.contains('sidebar-expanded'));
+      });
+    });
+
+    // Preview image
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        document.getElementById('profilePreview').src = reader.result;
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+
+    // Password strength checker
+    function checkPasswordStrength() {
+      const password = document.getElementById('new_password').value;
+      const strengthDiv = document.getElementById('passwordStrength');
+      const strengthBar = document.getElementById('strengthBar');
+      const strengthText = document.getElementById('strengthText');
+      
+      if (password.length === 0) {
+        strengthDiv.style.display = 'none';
+        return;
+      }
+      
+      strengthDiv.style.display = 'block';
+      
+      let strength = 0;
+      let feedback = [];
+      
+      // Length check
+      if (password.length >= 8) strength += 1;
+      else feedback.push('Au moins 8 caractères');
+      
+      // Number check
+      if (/\d/.test(password)) strength += 1;
+      else feedback.push('Au moins un chiffre');
+      
+      // Uppercase check
+      if (/[A-Z]/.test(password)) strength += 1;
+      else feedback.push('Au moins une majuscule');
+      
+      // Special character check
+      if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 1;
+      else feedback.push('Au moins un caractère spécial');
+      
+      // Update visual feedback
+      strengthBar.className = 'strength-fill';
+      switch (strength) {
+        case 1:
+          strengthBar.classList.add('strength-weak');
+          strengthText.textContent = 'Faible';
+          strengthText.style.color = 'var(--danger)';
+          break;
+        case 2:
+          strengthBar.classList.add('strength-fair');
+          strengthText.textContent = 'Moyen';
+          strengthText.style.color = 'var(--warning)';
+          break;
+        case 3:
+          strengthBar.classList.add('strength-good');
+          strengthText.textContent = 'Bon';
+          strengthText.style.color = 'var(--info)';
+          break;
+        case 4:
+          strengthBar.classList.add('strength-strong');
+          strengthText.textContent = 'Excellent';
+          strengthText.style.color = 'var(--success)';
+          break;
+        default:
+          strengthBar.classList.add('strength-weak');
+          strengthText.textContent = 'Très faible';
+          strengthText.style.color = 'var(--danger)';
+      }
+    }
+
+    // Add smooth scrolling to form sections
+    document.querySelectorAll('.form-section').forEach(section => {
+      section.addEventListener('mouseenter', () => {
+        section.style.transform = 'translateY(-2px)';
+      });
+      
+      section.addEventListener('mouseleave', () => {
+        section.style.transform = 'translateY(0)';
+      });
+    });
+  </script>
+</body>
+
+</html>

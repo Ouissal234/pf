@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Arkivo - Dossiers{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/folder.css') }}" />
+
+    {% block styles %}{% endblock %}
+</head>
+
+<body>
+    <div class="cursor"></div>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1 class="logo">Arkivo</h1>
+            <button class="toggle-btn" onclick="toggleSidebar()">
+                <i class="fas fa-chevron-left" id="toggleIcon"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> <span
+                            class="link-text">Dashboard</span></a></li>
+                <li><a href="{{ url_for('folders') }}" class="active"><i class="fas fa-folder"></i> <span
+                            class="link-text">Dossiers</span></a></li>
+                <li><a href="{{ url_for('reminders') }}"><i class="fas fa-bell"></i> <span
+                            class="link-text">Rappels</span></a></li>
+                <li><a href="{{ url_for('account') }}"><i class="fas fa-user"></i> <span
+                            class="link-text">Profil</span></a></li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="logout-text">Déconnexion</span>
+            </a>
+        </div>
+    </aside>
+    <!-- Main Content -->
+    <main class="dashboard-main" id="main">
+        <!-- Welcome Section -->
+        <section class="welcome-section fade-in">
+            <div class="welcome-card">
+                <div class="profile-info">
+                    <div class="profile-pic">
+                        <img src="{{ url_for('static', filename='img/hero.jpg') }}" alt="Profile" />
+                    </div>
+                    <div class="profile-text">
+                        <h2>Bienvenue, {{ session.fullname }}</h2>
+                        <p>{{ session.user_email }}</p>
+                    </div>
+
+                    <div class="notification-icon" title="Notifications" id="notifToggle">
+                        <i class="fas fa-bell"></i>
+                        {% if notif_count > 0 %}
+                        <span class="badge" id="notifCount">{{ notif_count }}</span>
+                        {% endif %}
+                        <div class="notification-dropdown">
+                            <ul>
+                                {% for notif in notifications %}
+                                <li>{{ notif['message'] }}</li>
+                                {% else %}
+                                <li>Aucune notification pour le moment.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upload-icon" title="Importer un fichier" onclick="openUploadModal()">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+
+            </div>
+
+            </div>
+            </div>
+        </section>
+
+        <!-- Add Folder Section -->
+
+        <!-- Folders Grid Section -->
+        <section class="dashboard-section fade-in">
+            <div class="section-header">
+                <h2><i class="fas fa-folder"></i> Mes Dossiers</h2>
+                <span class="count-badge">{{ folders|length }} dossier(s)</span>
+            </div>
+
+            <div class="folders-grid">
+                {% if folders %}
+                {% for folder in folders %}
+                <div class="folder-card" onclick="openFilesModal({{ folder.id }})">
+                    <div class="folder-icon">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                    <div class="folder-info">
+                        <h3>{{ folder.name }}</h3>
+                        <p>{{ folder.file_count or 0 }} fichier(s)</p>
+                    </div>
+                    <div class="folder-actions">
+                        <button class="action-btn" title="Ouvrir le dossier"
+                            onclick="event.stopPropagation(); openFilesModal({{ folder.id }})">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
+                        <form action="{{ url_for('delete_folder', folder_id=folder.id) }}" method="POST"
+                            style="display: inline;" onclick="event.stopPropagation();">
+                            <button type="submit" class="action-btn delete" title="Supprimer le dossier"
+                                onclick="return confirm('Voulez-vous vraiment supprimer ce dossier ?')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h3>Aucun dossier trouvé</h3>
+                    <p>Créez votre premier dossier pour organiser vos documents</p>
+                    <button class="btn" onclick="showAddFolderModal()">
+                        <i class="fas fa-folder-plus"></i> Créer un dossier
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        <section class="dashboard-section fade-in">
+            <div class="section-header">
+                <h2><i class="fas fa-folder-plus"></i> Créer un nouveau dossier</h2>
+            </div>
+
+            <div class="folder-form-card">
+                <form action="{{ url_for('add_folder') }}" method="POST" class="folder-form">
+                    <div class="form-group">
+                        <input type="text" name="folder_name" class="form-input" placeholder="Nom du dossier" required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Créer le dossier
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Voir fichiers -->
+    <div class="modal-overlay" id="filesModal" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modalFolderName">Fichiers du dossier</h3>
+                <button class="modal-close" onclick="closeModal('filesModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="filesList">Chargement...</div>
+
+                <!-- Formulaire d'ajout de fichier -->
+                <form id="uploadForm" class="upload-form" method="POST" action="{{ url_for('upload') }}"
+                    enctype="multipart/form-data" style="display: none;">
+                    <input type="hidden" name="folder_id" id="uploadFolderId">
+                    <div class="form-group">
+                        <label for="file" class="form-label">Sélectionner un fichier</label>
+                        <input type="file" name="file" class="form-input" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="toggleUploadForm()">Annuler</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Uploader
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="openUploadModal()">
+                    <i class="fas fa-plus"></i> Ajouter un fichier
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal('filesModal')">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const main = document.getElementById('main');
+            const icon = document.getElementById('toggleIcon');
+
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('collapsed');
+
+            icon.classList.toggle('fa-chevron-left');
+            icon.classList.toggle('fa-chevron-right');
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            const notifToggle = document.getElementById('notifToggle');
+            const dropdown = notifToggle.querySelector('.notification-dropdown');
+            const notifCount = document.getElementById('notifCount');
+
+            notifToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (dropdown.style.display === 'block') {
+                    dropdown.style.display = 'none';
+                } else {
+                    dropdown.style.display = 'block';
+                    if (notifCount) {
+                        notifCount.style.display = 'none';
+                    }
+                }
+            });
+
+            document.addEventListener('click', function () {
+                dropdown.style.display = 'none';
+            });
+        });
+        data.forEach(notif => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${notif.type.toUpperCase()}:</strong> ${notif.message}`;
+            notifListElem.appendChild(li);
+        });
+        function fetchNotifications() {
+            fetch('/api/notifications')
+                .then(response => response.json())
+                .then(data => {
+                    const notifCountElem = document.getElementById('notifCount');
+                    const notifListElem = document.querySelector('.notification-dropdown ul');
+
+                    if (!Array.isArray(data)) {
+                        return; // Not logged in or error
+                    }
+
+                    if (data.length > 0) {
+                        notifCountElem.style.display = 'inline-block';
+                        notifCountElem.textContent = data.length;
+
+                        notifListElem.innerHTML = '';
+                        data.forEach(notif => {
+                            const li = document.createElement('li');
+                            li.textContent = notif.message;
+                            notifListElem.appendChild(li);
+                        });
+                    } else {
+                        notifCountElem.style.display = 'none';
+                        notifListElem.innerHTML = '<li>Aucune notification pour le moment.</li>';
+                    }
+                })
+                .catch(console.error);
+        }
+
+        notifToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('show');
+
+            if (dropdown.classList.contains('show')) {
+                // Mark notifications as read on the server
+                fetch('/api/notifications/read', {
+                    method: 'POST'
+                }).then(() => {
+                    const notifCountElem = document.getElementById('notifCount');
+                    if (notifCountElem) notifCountElem.style.display = 'none';
+                }).catch(console.error);
+            }
+        });
+
+
+
+        document.addEventListener('click', function () {
+            dropdown.classList.remove('show');
+        });
+
+        // استدعي اول مرة عند تحميل الصفحة
+        fetchNotifications();
+
+        // استدعي كل 60 ثانية (60000 مللي ثانية)
+        setInterval(fetchNotifications, 60000);
+        function openUploadModal() {
+            document.getElementById("uploadModal").style.display = "flex";
+        }
+
+        function closeUploadModal() {
+            document.getElementById("uploadModal").style.display = "none";
+        }
+
+        // Optional: Close modal if you click outside the content
+        window.onclick = function (event) {
+            const modal = document.getElementById("uploadModal");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+        function openFilesModal(folderId) {
+            const modal = document.getElementById('filesModal');
+            const filesList = document.getElementById('filesList');
+            const modalFolderName = document.getElementById('modalFolderName');
+            const uploadFolderIdInput = document.getElementById('uploadFolderId');
+
+            modal.style.display = 'flex';
+            filesList.innerHTML = 'Chargement...';
+            modalFolderName.textContent = 'Chargement...';
+            uploadFolderIdInput.value = folderId;
+
+            fetch(`/api/folder_files/${folderId}`)
+                .then(response => response.json())
+                .then(data => {
+                    modalFolderName.textContent = data.folder_name || 'Dossier';
+                    filesList.innerHTML = '';
+
+                    if (!data.files || data.files.length === 0) {
+                        filesList.innerHTML = '<p>Aucun fichier dans ce dossier.</p>';
+                        return;
+                    }
+
+                    data.files.forEach(file => {
+                        const card = document.createElement('div');
+                        card.className = 'file-card';
+
+                        const preview = document.createElement('div');
+                        preview.className = 'file-preview';
+
+                        const isImage = /\.(jpe?g|png|gif|webp)$/i.test(file.name);
+                        const isPDF = /\.pdf$/i.test(file.name);
+
+                        if (isImage) {
+                            const img = document.createElement('img');
+                            img.src = `/uploads/${encodeURIComponent(file.name)}`;
+                            img.alt = 'Aperçu';
+                            preview.appendChild(img);
+                        } else if (isPDF) {
+                            // Miniature PDF personnalisée
+                            preview.innerHTML = `<img src="/static/img/pdf-icon.png" alt="PDF" style="width: 80px; height: 80px;" />`;
+                        } else {
+                            // Icône générique pour autres fichiers
+                            preview.innerHTML = `<i class="fas fa-file-alt fa-3x" style="color:#689f38;"></i>`;
+                        }
+                        const title = document.createElement('div');
+                        title.className = 'file-title';
+                        title.textContent = file.name;
+
+                        const actions = document.createElement('div');
+                        actions.className = 'file-actions';
+
+                        const downloadBtn = document.createElement('button');
+                        downloadBtn.className = 'file-btn download';
+                        downloadBtn.title = 'Télécharger';
+                        downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
+                        downloadBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            window.location.href = `/uploads/${encodeURIComponent(file.name)}`;
+                        };
+
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'file-btn delete';
+                        deleteBtn.title = 'Supprimer';
+                        deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                        deleteBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (confirm(`Supprimer le fichier \"${file.name}\" ?`)) {
+                                fetch(`/delete_file/${file.id}`, {
+                                    method: 'POST'
+                                }).then(resp => {
+                                    if (resp.ok) card.remove();
+                                    else alert('Erreur lors de la suppression.');
+                                }).catch(() => alert('Erreur lors de la suppression.'));
+                            }
+                        };
+
+                        actions.appendChild(downloadBtn);
+                        actions.appendChild(deleteBtn);
+
+                        card.appendChild(preview);
+                        card.appendChild(title);
+                        card.appendChild(actions);
+                        filesList.appendChild(card);
+                    });
+                })
+                .catch(() => {
+                    filesList.innerHTML = '<p class="error">Erreur de chargement.</p>';
+                    modalFolderName.textContent = 'Erreur';
+                });
+        }
+
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+    </script>
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUploadModal()">&times;</span>
+            <h3>📤 Importer un fichier</h3>
+            <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" required />
+                <button type="submit" class="btn-upload">Uploader</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

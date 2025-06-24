@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arkivo | Portefeuille digital</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+  <!-- Custom Cursor -->
+  <div class="cursor"></div>
+  <div></div>
+
+  <!-- Animated Background -->
+  <div class="background">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <h1 class="logo">Arkivo</h1>
+      <nav>
+        <ul>
+          <li><a href="#" data-scroll="hero">Accueil</a></li>
+          <li><a href="#services" data-scroll="services">Services</a></li>
+          <li><a href="#why" data-scroll="why">Pourquoi nous ?</a></li>
+          <li><a href="#contact" data-scroll="contact">Contact</a></li>
+        </ul>
+      </nav>
+      <a href="{{ url_for('index') }}#login" class="btn" data-scroll="login">Get started</a>
+    </div>
+  </header>
+  <div class="main">
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+      <div class="platform-intro">
+        <h1>Découvrez Arkivo</h1>
+    <p class="tagline">Votre portefeuille digital pour une gestion documentaire.</p>
+    
+    <ul class="key-benefits">
+        <div> Stockage sécurisé de tous vos documents</div>
+        <div> Organisation automatique par catégorie</div>
+        <div> Intelligence artificielle intégrée</div>
+    </ul>
+      </div>
+    </section>
+
+    <!-- Login Section -->
+    <section class="login-section" id="login">
+      <!-- Connexion -->
+      <div id="login-container" class="login-container fade-in">
+        <h2>Connexion</h2>
+        <form action="/login" method="POST">
+          <div class="form-group">
+            <input type="email" placeholder="Adresse e-mail" name="email" required />
+          </div>
+          <div class="form-group">
+            <input type="password" placeholder="Mot de passe" name="password" required />
+          <a href="{{ url_for('forgot') }}" class="forgot-password">Mot de passe oublié ?</a>
+          </div>
+          <button type="submit" class="btn-login">Se connecter</button>
+        </form>
+        <div class="auth-links">
+          <p>
+            Vous n'avez pas de compte ?
+            <a href="#" id="show-register" class="create-account">Créer un compte</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Inscription -->
+      <div id="register-container" class="register-container" style="display: none;">
+        <div class="form-icon">
+        </div>
+        <h2>Inscription</h2>
+        <form action="/register" method="POST">
+          <div class="form-group">
+            <input type="text" placeholder="Nom complet" name="fullname" required />
+          </div>
+          <div class="form-group">
+            <input type="email" placeholder="Email" name="email" required />
+          </div>
+          <div class="form-group">
+            <input type="password" placeholder="Mot de passe" name="password" required />
+          </div>
+          <button type="submit" class="btn-register">S'inscrire</button>
+        </form>
+        <div class="auth-links">
+          <p>
+            Déjà inscrit ?
+            <a href="#" id="show-login">Se connecter</a>
+          </p>
+        </div>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <ul>
+        {% for category, message in messages %}
+        <li class="flash-message {{ category }}">
+          {{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% endwith %}
+    </section>
+  </div>
+  <div class="main-content">
+    <!-- Services Section -->
+    <section class="services fade-in" id="services">
+      <div class="container">
+        <div class="section-header">
+          <h2>Nos Services</h2>
+          <p class="section-subtitle">
+            Une solution complète pour gérer vos documents médicaux et factures en toute simplicité
+          </p>
+        </div>
+
+        <div class="services-grid">
+          <!-- Service 1 -->
+          <div class="service-card service-item fade-in">
+            <div class="service-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <h3>Gestion centralisée</h3>
+            <p>
+              Un espace unique pour stocker et organiser tous vos documents médicaux et factures avec une
+              interface intuitive.
+            </p>
+            <ul class="service-features">
+              <li>Création et édition de factures</li>
+              <li>Classement automatique</li>
+              <li>Stockage sécurisé</li>
+            </ul>
+          </div>
+
+          <!-- Service 2 -->
+          <div class="service-card service-item fade-in">
+            <div class="service-icon">
+              <i class="fas fa-search"></i>
+            </div>
+            <h3>Recherche intelligente</h3>
+            <p>
+              Trouvez instantanément n'importe quel document grâce à notre moteur de recherche avancé et à nos
+              filtres intelligents.
+            </p>
+            <ul class="service-features">
+              <li>Recherche par mot-clé</li>
+              <li>Filtres personnalisables</li>
+              <li>Historique des recherches</li>
+            </ul>
+          </div>
+
+          <!-- Service 3 -->
+          <div class="service-card service-item fade-in">
+            <div class="service-icon">
+              <i class="fas fa-sync-alt"></i>
+            </div>
+            <h3>Accès multi-device</h3>
+            <p>Accédez à vos documents depuis n'importe quel appareil avec une synchronisation en temps réel.</p>
+            <ul class="service-features">
+              <li>Compatibilité mobile et desktop</li>
+              <li>Synchronisation instantanée</li>
+              <li>Mode hors-ligne disponible</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="why-choose-us fade-in" id="why">
+      <h2>Pourquoi choisir notre plateforme ?</h2>
+
+      <!-- 1ère raison - Simplicité -->
+      <div class="reason-item fade-in">
+        <div class="text">
+          <h3>Simplicité d'utilisation</h3>
+          <p>Conçue pour l'évidence, notre interface vous guide naturellement à travers toutes les tâches
+            administratives.<br> Des menus clairs, des actions en un clic et une organisation visuelle qui parle
+            d'elle-même.</p>
+        </div>
+        <div class="image">
+          <img style="width: 450px; height: 350px;padding:10px"
+            src="{{ url_for('static', filename='img/simplicité.png') }}" alt="Simplicité" />
+        </div>
+      </div>
+      <!-- 2ème raison - Sécurité -->
+      <div class="reason-item reverse fade-in">
+        <div class="image">
+          <img src="{{ url_for('static', filename='img/sécurité.png') }}" alt="Sécurité" />
+        </div>
+        <div class="text">
+          <h3>Sécurité renforcée</h3>
+          <p>
+            Vos données sont protégées 24h/24 par notre bouclier de sécurité intelligent.<br>
+            Nous appliquons le principe de "zero-trust" pour chaque accès.<br>
+            Votre confidentialité est notre engagement absolu - transparence totale.
+          </p>
+        </div>
+      </div>
+
+      <!-- 3ème raison - Gain de temps -->
+      <div class="reason-item fade-in">
+        <div class="text">
+          <h3>Gain de temps</h3>
+          <p>
+            Libérez-vous des tâches répétitives grâce à notre robotisation intelligente<br>
+            Vos documents sont triés, classés et archivés automatiquement<br>
+            Concentrez-vous sur l'essentiel pendant que la plateforme travaille pour vous
+          </p>
+        </div>
+        <div class="image">
+          <img style="width: 500px; height: 550px;" src="{{ url_for('static', filename='img/Temp (3).png') }}" alt="temp" />
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- Footer -->
+  <footer id="contact">
+    <div class="container footer-content">
+      <div>
+        <h3>Arkivo</h3>
+        <p>La plateforme de confiance pour la gestion de vos documents numériques.</p>
+      </div>
+      <div>
+        <h4>Liens</h4>
+        <ul>
+          <li><a href="#">Accueil</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Newsletter</h4>
+        <form>
+          <input type="email" placeholder="Votre email" />
+          <button>S'abonner</button>
+        </form>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
